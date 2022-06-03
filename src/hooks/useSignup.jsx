@@ -40,9 +40,11 @@ const useSignup = () => {
       }
     }
   };
+
   const cleanup = () => {
     setIsCancelled(true);
   };
+
   return { signup, isPending, error, cleanup };
 };
 
