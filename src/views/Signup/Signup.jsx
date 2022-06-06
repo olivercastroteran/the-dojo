@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSignup } from '../../hooks';
 import './Signup.css';
 
 const Signup = () => {
@@ -9,10 +10,11 @@ const Signup = () => {
     password: '',
     name: '',
   });
+  const { signup, isPending, error, cleanup } = useSignup();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log({ ...user, thumbnail });
+    signup(user.email, user.password, user.name, thumbnail);
   };
 
   const handleChange = (e) => {
@@ -47,6 +49,14 @@ const Signup = () => {
     setThumbnail(selected);
     console.log('thumbnail updated');
   };
+
+  useEffect(() => {
+    return () => {
+      if (isPending) {
+        cleanup();
+      }
+    };
+  });
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
@@ -99,7 +109,10 @@ const Signup = () => {
         {thumbnailError && <div className="error">{thumbnailError}</div>}
       </label>
 
-      <button className="btn">Sign up</button>
+      <button className="btn" disabled={isPending}>
+        {isPending ? 'loading...' : 'Sign up'}
+      </button>
+      {error && <div className="error">{error}</div>}
     </form>
   );
 };
