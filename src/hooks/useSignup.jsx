@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useAuthContext } from '../hooks';
 // Firebase imports
-import { auth, storage } from '../firebase/config';
+import { auth, db, storage } from '../firebase/config';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import { doc, setDoc } from 'firebase/firestore';
 
 const useSignup = () => {
   const [isCancelled, setIsCancelled] = useState(false);
@@ -32,6 +33,13 @@ const useSignup = () => {
 
       // add display name to user
       await updateProfile(auth.currentUser, {
+        displayName: name,
+        photoURL: imgUrl,
+      });
+
+      // create a user document
+      await setDoc(doc(db, 'users', res.user.uid), {
+        online: true,
         displayName: name,
         photoURL: imgUrl,
       });
