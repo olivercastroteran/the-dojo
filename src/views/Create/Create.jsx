@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
-import { useCollection } from '../../hooks';
+import { timestamp } from '../../firebase/config';
+import { useAuthContext, useCollection } from '../../hooks';
+import useFireStore from '../../hooks/useFirestore';
 import './Create.css';
 
 const categories = [
@@ -11,6 +14,7 @@ const categories = [
 ];
 
 const Create = () => {
+  const { user } = useAuthContext();
   const [project, setProject] = useState({
     name: '',
     details: '',
@@ -21,6 +25,8 @@ const Create = () => {
   const [users, setUsers] = useState([]);
   const { documents } = useCollection('users');
   const [formError, setFormError] = useState(null);
+  const { response, addDocument, cleanup } = useFireStore('projects');
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (documents) {
@@ -32,7 +38,7 @@ const Create = () => {
     }
   }, [documents]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
 
@@ -46,7 +52,35 @@ const Create = () => {
       return;
     }
 
-    console.log(project);
+    const createdBy = {
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      id: user.uid,
+    };
+
+    const assignedUsersList = project.assignedUsers.map((user) => {
+      return {
+        displayName: user.value.displayName,
+        photoURL: user.value.photoURL,
+        id: user.value.id,
+      };
+    });
+
+    const projectEdited = {
+      name: project.name,
+      details: project.details,
+      category: project.category.value,
+      dueDate: timestamp.fromDate(new Date(project.dueDate)),
+      comments: [],
+      createdBy,
+      assignedUsersList,
+    };
+
+    await addDocument(projectEdited);
+
+    if (!response.error) {
+      navigate('/');
+    }
   };
 
   const handleChange = (e) => {
@@ -56,6 +90,14 @@ const Create = () => {
       [name]: value,
     }));
   };
+
+  useEffect(() => {
+    return () => {
+      if (response.isPending) {
+        cleanup();
+      }
+    };
+  });
 
   return (
     <div className="create-form">
@@ -122,7 +164,9 @@ const Create = () => {
           />
         </label>
 
-        <button className="btn">Add Project</button>
+        <button className="btn" disabled={response.isPending}>
+          {response.isPending ? 'Adding Project...' : 'Add Project'}
+        </button>
 
         {formError && <p className="error">{formError}</p>}
       </form>
