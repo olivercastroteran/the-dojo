@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { AddIcon, DashboardIcon } from '../../assets';
-import { Avatar } from '../';
+import { Avatar } from '..';
 import './Sidebar.css';
 import { useAuthContext } from '../../hooks';
 
