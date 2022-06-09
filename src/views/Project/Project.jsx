@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { Loader } from '../../components';
 import { useDocument } from '../../hooks';
-import { ProjectSummary } from './components';
+import { ProjectComments, ProjectSummary } from './components';
 import './Project.css';
 
 const Project = () => {
@@ -19,6 +19,7 @@ const Project = () => {
   return (
     <div className="project-details">
       <ProjectSummary project={document} />
+      <ProjectComments project={document} />
     </div>
   );
 };
