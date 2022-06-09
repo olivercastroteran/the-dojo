@@ -1,6 +1,12 @@
 import { useReducer, useState } from 'react';
 import { db, timestamp } from '../firebase/config';
-import { addDoc, collection, deleteDoc, doc } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from 'firebase/firestore';
 
 let initialState = {
   document: null,
@@ -28,6 +34,13 @@ const firestoreReducer = (state, action) => {
     case 'DELETED_DOCUMENT':
       return {
         document: null,
+        isPending: false,
+        error: null,
+        success: true,
+      };
+    case 'UPDATED_DOCUMENT':
+      return {
+        document: action.payload,
         isPending: false,
         error: null,
         success: true,
@@ -83,15 +96,37 @@ const useFireStore = (c) => {
     } catch (err) {
       dispatchIfNotCancelled({
         type: 'ERROR',
-        payload: 'Could not delete transaction',
+        payload: 'Could not delete document',
       });
+    }
+  };
+
+  // update document
+  const updateDocument = async (id, updates) => {
+    dispatch({ type: 'IS_PENDING' });
+
+    const docRef = doc(db, c, id);
+
+    try {
+      const updatedDocument = await updateDoc(docRef, updates);
+      dispatchIfNotCancelled({
+        type: 'UPDATED_DOCUMENT',
+        payload: updatedDocument,
+      });
+      return updatedDocument;
+    } catch (err) {
+      dispatchIfNotCancelled({
+        type: 'ERROR',
+        payload: 'Could not update comments',
+      });
+      return null;
     }
   };
 
   // cleanup when unmounted & pending process
   const cleanup = () => setIsCancelled(true);
 
-  return { response, addDocument, deleteDocument, cleanup };
+  return { response, addDocument, deleteDocument, updateDocument, cleanup };
 };
 
 export default useFireStore;

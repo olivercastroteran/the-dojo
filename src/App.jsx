@@ -1,7 +1,7 @@
 import './App.css';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Create, Dashboard, Login, Project, Signup } from './views';
-import { Loader, Navbar, Sidebar } from './components';
+import { Loader, Navbar, OnlineUsers, Sidebar } from './components';
 import { useAuthContext } from './hooks';
 
 function App() {
@@ -37,6 +37,7 @@ function App() {
               />
             </Routes>
           </div>
+          {user && <OnlineUsers />}
         </BrowserRouter>
       ) : (
         <Loader />
